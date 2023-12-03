@@ -9,6 +9,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 100,
     elevation: 10,
+    paddingLeft: 20,
   },
   input2: {
     marginHorizontal: 20,
@@ -37,6 +38,37 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     color: 'black',
     fontFamily: 'Poppins-Regular',
+  },
+  label2: {
+    color: 'white',
+    fontFamily: 'Poppins-Regular',
+  },
+  addBadge: {
+    backgroundColor: 'black',
+    padding: 5,
+    borderRadius: 100,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    paddingBottom: 30,
+  },
+  itemTarefa: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 10,
+    padding: 10,
+    marginTop: 10,
+    marginHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  badge: {
+    backgroundColor: 'red',
+    borderRadius: 5,
+    padding: 5,
+    marginLeft: 10,
   },
 });
 

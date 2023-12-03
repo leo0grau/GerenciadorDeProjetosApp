@@ -112,12 +112,6 @@ export default function HomePage() {
 
         <View style={styles.line}>
           <Text style={styles.titulo}>Tarefas Hoje</Text>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('ProjetosPage');
-            }}>
-            <Text style={styles.verTodos}>Ver Todos</Text>
-          </TouchableOpacity>
         </View>
         {tarefa.map(v => {
           return <TarefasHomeComponent item={v} key={v.id_tarefa + ''} />;

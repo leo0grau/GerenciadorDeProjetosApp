@@ -8,5 +8,6 @@ export default {
     dataInicio: 'string',
     dataFim: 'string',
     projeto_id: 'int',
+    status: 'int',
   },
 };
