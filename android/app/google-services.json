@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "931588742970",
+    "project_id": "gerenciamento-de-projeto-8ca20",
+    "storage_bucket": "gerenciamento-de-projeto-8ca20.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:931588742970:android:31bd926e6b24ea50497a03",
+        "android_client_info": {
+          "package_name": "com.gerenciadordeprojetosapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDi2_-kdZPukGobU1ixrgvMjDM27ioPWbk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -16,18 +16,21 @@ import {
 import FlashMessage from 'react-native-flash-message';
 import styles from './styles';
 
-import HomePage from '../pages/home';
-
-import LoginPage from '../pages/home';
+import LoginPage from '../pages/login';
+import Bottom from './bottom';
+import Toast from 'react-native-toast-message';
 
 export type StackParamList = {
-  HomePage: {cliente: boolean};
+  BottomTab: {cliente: boolean};
   LoginPage: undefined;
 };
 
 const Stack = createNativeStackNavigator<StackParamList>();
 
-export default function StackNavigation() {
+interface Props {
+  logado: boolean;
+}
+export default function StackNavigation({logado}: Props) {
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -40,14 +43,16 @@ export default function StackNavigation() {
         />
         <SafeAreaView style={styles.safeArea}>
           <Stack.Navigator
+            initialRouteName={logado ? 'BottomTab' : 'LoginPage'}
             screenOptions={{
               headerShown: false,
               animation: 'slide_from_right',
             }}>
             <Stack.Screen name="LoginPage" component={LoginPage} />
-            <Stack.Screen name="HomePage" component={HomePage} />
+            <Stack.Screen name="BottomTab" component={Bottom} />
           </Stack.Navigator>
         </SafeAreaView>
+        <Toast />
       </View>
     </TouchableWithoutFeedback>
   );
