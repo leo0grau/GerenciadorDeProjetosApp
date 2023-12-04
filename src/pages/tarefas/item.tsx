@@ -27,7 +27,28 @@ export default function ItemTarefasPage({navigation, route}: any) {
       console.log(error);
     }
   }, [isFocused]);
+  const handleEnd = async () => {
+    try {
+      const realm = await getRealm();
+      const tarefas: any = realm
+        .objects('Tarefas')
+        .filtered(`id_tarefa = ${route.params.id_tarefa}`);
 
+      const item: any = realm
+        .objects('Projetos')
+        .filtered(`id_projeto = ${tarefas[0].projeto_id}`);
+
+      realm.write(() => {
+        tarefas[0].status = 2;
+      });
+      navigation.navigate('TarefasListPage', {
+        id_projeto: item[0].id_projeto,
+        nome: item[0].nome_projeto,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <ScrollView style={{flex: 1}}>
       <View
@@ -64,7 +85,7 @@ export default function ItemTarefasPage({navigation, route}: any) {
         </Text>
       </View>
       {showBtn && (
-        <TouchableOpacity style={styles.btnSalvar}>
+        <TouchableOpacity style={styles.btnSalvar} onPress={handleEnd}>
           <Text style={styles.salvarTxt}>Finalizar tarefa</Text>
         </TouchableOpacity>
       )}
