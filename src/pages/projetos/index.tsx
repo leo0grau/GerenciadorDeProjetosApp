@@ -13,7 +13,9 @@ export default function ProjetosPage() {
   useEffect(() => {
     const getData = async () => {
       const realm = await getRealm();
-      const projetos: any = realm.objects('Projetos');
+      const projetos: any = realm
+        .objects('Projetos')
+        .filtered(`finalizado = ${completo}`);
       setListaProjetos(projetos);
     };
     try {

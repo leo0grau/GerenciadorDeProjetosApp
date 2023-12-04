@@ -1,5 +1,5 @@
 import auth from '@react-native-firebase/auth';
-// import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 // import {appleAuth} from '@invertase/react-native-apple-authentication';
 import getRealm from '../../database/realm';
 import Toast from 'react-native-toast-message';
@@ -39,47 +39,43 @@ export async function handleSendToDataBase(
   //   {headers},
   // );
 
-  if (!verificar) {
-    // await AsyncStorage.setItem('@timerReward', `${new Date()}`);
-
-    realm.write(() => {
-      realm.create(
-        'User',
-        {
-          id_user: 1,
-          name: json?.name ? json?.name : 'Guest',
-          email: json.email,
-          image_user: json.image_user ? json.image_user : '',
-        },
-        true,
-      );
-    });
-  }
+  realm.write(() => {
+    realm.create(
+      'User',
+      {
+        id_user: 1,
+        name: json?.name ? json?.name : 'Guest',
+        email: json.email,
+        image_user: json.image_user ? json.image_user : '',
+      },
+      true,
+    );
+  });
 }
 // 40470
 //409455216
 
-// export async function onGoogleButtonPress(
-//   handleLoading: (boolean?: boolean) => void,
-// ) {
-//   handleLoading();
+export async function onGoogleButtonPress(
+  handleLoading: (boolean?: boolean) => void,
+) {
+  handleLoading();
 
-//   // Check if your device supports Google Play
-//   await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
-//   // Get the users ID token
-//   const {idToken} = await GoogleSignin.signIn();
+  // Check if your device supports Google Play
+  await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
+  // Get the users ID token
+  const {idToken} = await GoogleSignin.signIn();
 
-//   // Create a Google credential with the token
-//   const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+  // Create a Google credential with the token
+  const googleCredential = auth.GoogleAuthProvider.credential(idToken);
 
-//   // Sign-in the user with the credential
-//   return auth()
-//     .signInWithCredential(googleCredential)
-//     .then(async v => {
-//       handleLoading(false);
-//       // await handleSendToDataBase(json, false);
-//     });
-// }
+  // Sign-in the user with the credential
+  return auth()
+    .signInWithCredential(googleCredential)
+    .then(async v => {
+      handleLoading(false);
+      // await handleSendToDataBase(json, false);
+    });
+}
 
 // export async function onAppleButtonPress(
 //   handleLoading: (boolean?: boolean) => void,

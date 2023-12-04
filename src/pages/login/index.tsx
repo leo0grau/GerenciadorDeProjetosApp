@@ -18,6 +18,7 @@ import {
   // onGoogleButtonPress,
   // onAppleButtonPress,
   handleSendToDataBase,
+  onGoogleButtonPress,
 } from './functions';
 import styles from './styles';
 import Feather from 'react-native-vector-icons/Feather';
@@ -25,6 +26,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import auth from '@react-native-firebase/auth';
 import Toast from 'react-native-toast-message';
 import getRealm from '../../database/realm';
+import LogoComponent from '../../components/logo';
 // import {colors} from '../../utils/colors';
 // import getRealm from '../../services/realm';
 // import app from '../../services/axios';
@@ -54,50 +56,51 @@ export default function LoginPage({route}: Props) {
   //   Keyboard.dismiss();
   // }, [register]);
 
-  // useEffect(() => {
-  //   const subscriber = auth().onAuthStateChanged(async v => {
-  //     if (v) {
-  //       const content = v.providerData[0];
-  //       let a = route?.params?.reLogin;
-  //       if (!a) {
-  //         const data = {
-  //           name: content?.displayName,
-  //           email: content?.email,
-  //           image_user: content?.photoURL,
-  //           platform: content?.providerId,
-  //           age: 0,
-  //           gender: 0,
-  //         };
-  //         handleSendToDataBase(data);
-  //         setUser(true);
-  //       } else {
-  //         a = false;
-  //       }
-  //     }
-  //   });
-  //   return subscriber;
-  // }, [isFocused]);
+  useEffect(() => {
+    const subscriber = auth().onAuthStateChanged(async v => {
+      if (v) {
+        const content = v.providerData[0];
+        let a = route?.params?.reLogin;
+        if (!a) {
+          const data = {
+            name: content?.displayName,
+            email: content?.email,
+            image_user: content?.photoURL,
+            platform: content?.providerId,
+            age: 0,
+            gender: 0,
+          };
+          handleSendToDataBase(data);
+          setUser(true);
+        } else {
+          a = false;
+        }
+      }
+    });
+    return subscriber;
+  }, [isFocused]);
 
-  // const handleNavigation = async () => {
-  //   if (user && isFocused) {
-  //     navigation.navigate('HomePage');
-  //   }
-  // };
+  const handleNavigation = async () => {
+    if (user && isFocused) {
+      navigation.navigate('BottomTab');
+    }
+  };
 
-  // useEffect(() => {
-  //   setUser(false);
-  //   try {
-  //     handleNavigation();
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }, [user, isFocused]);
+  useEffect(() => {
+    setUser(false);
+    try {
+      handleNavigation();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [user, isFocused]);
   return (
     <TouchableWithoutFeedback
       onPress={() => {
         Keyboard.dismiss();
       }}>
       <View style={{flex: 1, padding: 31, backgroundColor: '#F6F8FA'}}>
+        <LogoComponent />
         <Text style={styles.titulo}>Login</Text>
         <Text style={styles.sub}>
           Digite suas informações abaixo para se logar
@@ -148,63 +151,71 @@ export default function LoginPage({route}: Props) {
                 handleLoading(false);
                 return;
               }
-              navigation.navigate('BottomTab');
-              // await auth()
-              //   .signInWithEmailAndPassword(email, senha)
-              //   .then(async v => {
-              //     setLoading(false);
+              await auth()
+                .signInWithEmailAndPassword(email, senha)
+                .then(async v => {
+                  setLoading(false);
 
-              //     let json = {
-              //       name: 'Guest',
-              //       email: email,
-              //       image_user: '',
-              //       platform: 'Email/Senha',
-              //     };
+                  let json = {
+                    name: v.user.displayName,
+                    email: v.user.email,
+                    image_user: '',
+                    platform: 'Email/Senha',
+                  };
 
-              //     const realm = await getRealm();
-              //     realm.write(() => {
-              //       realm.create(
-              //         'User',
-              //         {
-              //           id_user: 1,
-              //           name: json?.name ? json?.name : 'Guest',
-              //           email: json.email,
-              //           image_user: json.image_user ? json.image_user : '',
-              //         },
-              //         true,
-              //       );
-              //     });
+                  const realm = await getRealm();
+                  realm.write(() => {
+                    realm.create(
+                      'User',
+                      {
+                        id_user: 1,
+                        name: json?.name ? json?.name : 'Guest',
+                        email: json.email,
+                        image_user: json.image_user ? json.image_user : '',
+                      },
+                      true,
+                    );
+                  });
 
-              //     // await handleSendToDataBase(json, false);
-              //   })
-              //   .catch(error => {
-              //     setLoading(false);
-              //     console.log(error);
-              //     if (error.code === 'auth/invalid-email') {
-              //       Toast.show({
-              //         text1: 'Email invalido',
-              //         text2: 'Preencha com uma email valido',
-              //         type: 'error',
-              //         autoHide: true,
-              //       });
-              //     }
-              //     if (error.code === 'auth/user-not-found') {
-              //       Toast.show({
-              //         text1: 'Erro ao logar',
-              //         text2: 'Email ou senha invalidos',
-              //         type: 'error',
-              //         autoHide: true,
-              //       });
-              //     }
-              //     if (error.code === 'auth/wrong-password') {
-              //       Toast.show({
-              //         text1: 'Erro ao logar',
-              //         text2: 'Email ou senha invalidos',
-              //         type: 'error',
-              //         autoHide: true,
-              //       });
-              //     }
-              //   });
+                  // await handleSendToDataBase(json, false);
+                })
+                .catch(error => {
+                  setLoading(false);
+                  console.log(error);
+                  if (error.code === 'auth/invalid-email') {
+                    Toast.show({
+                      text1: 'Email invalido',
+                      text2: 'Preencha com uma email valido',
+                      type: 'error',
+                      autoHide: true,
+                    });
+                  }
+                  if (error.code === 'auth/user-not-found') {
+                    Toast.show({
+                      text1: 'Erro ao logar',
+                      text2: 'Email ou senha invalidos',
+                      type: 'error',
+                      autoHide: true,
+                    });
+                  }
+                  if (error.code === 'auth/wrong-password') {
+                    Toast.show({
+                      text1: 'Erro ao logar',
+                      text2: 'Email ou senha invalidos',
+                      type: 'error',
+                      autoHide: true,
+                    });
+                  }
+
+                  if (error.code === 'auth/invalid-credential') {
+                    Toast.show({
+                      text1: 'Erro ao logar',
+                      text2: 'Email ou senha invalidos',
+                      type: 'error',
+                      autoHide: true,
+                    });
+                  }
+                });
             } catch (error) {
               setLoading(false);
 
@@ -226,8 +237,7 @@ export default function LoginPage({route}: Props) {
 
         <TouchableOpacity
           style={[styles.btnSocial]}
-          // onPress={() => onGoogleButtonPress(handleLoading)}
-        >
+          onPress={() => onGoogleButtonPress(handleLoading)}>
           <MaterialCommunityIcons name="google" color={'black'} size={25} />
         </TouchableOpacity>
 
