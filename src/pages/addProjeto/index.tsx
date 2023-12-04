@@ -13,7 +13,7 @@ import ModalTarefa, {converterParaFormatoDateAceito} from './modalTarefa';
 import getRealm from '../../database/realm';
 import Toast from 'react-native-toast-message';
 import IonIcons from 'react-native-vector-icons/Ionicons';
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 
 export function formatarDataParaDDMMYYYY(data: Date) {
   // Garanta que 'data' seja um objeto Date
@@ -33,9 +33,9 @@ export function formatarDataParaDDMMYYYY(data: Date) {
   return dataFormatada;
 }
 
-export default function AddProjetoPage({route}: any) {
+export default function AddProjetoPage() {
   const [nome, setNome] = useState('');
-
+  const route: any = useRoute();
   const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false);
 
@@ -49,7 +49,7 @@ export default function AddProjetoPage({route}: any) {
   const [loading, setLoading] = useState(false);
   const [deleted, setDeleted] = useState([]);
   const isFocused = useIsFocused();
-  const navigation: any = useNavigation();
+  const navigation = useNavigation();
 
   const handleSubmit = async (
     nome: string,
@@ -159,7 +159,10 @@ export default function AddProjetoPage({route}: any) {
           }
         }
       });
-      navigation.navigate('ProjetosPage');
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'ProjetosPage', params: undefined}],
+      });
     } catch (error) {
       setLoading(false);
 
@@ -214,12 +217,11 @@ export default function AddProjetoPage({route}: any) {
         setDate2(new Date());
         setTarefas([]);
         setLoading(false);
-        navigation.setParams({id_projeto: undefined});
       }
     } catch (error) {
       console.log(error);
     }
-  }, [route.params?.id_projeto, isFocused]);
+  }, [isFocused]);
 
   return (
     <ScrollView style={styles.container}>
