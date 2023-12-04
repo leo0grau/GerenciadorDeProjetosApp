@@ -9,11 +9,11 @@ import {
 import React, {useState, useEffect} from 'react';
 import DatePicker from 'react-native-date-picker';
 import styles from './styles';
-import ModalTarefa from './modalTarefa';
+import ModalTarefa, {converterParaFormatoDateAceito} from './modalTarefa';
 import getRealm from '../../database/realm';
 import Toast from 'react-native-toast-message';
 import IonIcons from 'react-native-vector-icons/Ionicons';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 
 export function formatarDataParaDDMMYYYY(data: Date) {
   // Garanta que 'data' seja um objeto Date
@@ -33,7 +33,7 @@ export function formatarDataParaDDMMYYYY(data: Date) {
   return dataFormatada;
 }
 
-export default function AddProjetoPage() {
+export default function AddProjetoPage({route}: any) {
   const [nome, setNome] = useState('');
 
   const [date, setDate] = useState(new Date());
@@ -47,7 +47,10 @@ export default function AddProjetoPage() {
   const [indexId, setIndex] = useState(-1);
 
   const [loading, setLoading] = useState(false);
+  const [deleted, setDeleted] = useState([]);
+  const isFocused = useIsFocused();
   const navigation: any = useNavigation();
+
   const handleSubmit = async (
     nome: string,
     desc: string,
@@ -68,16 +71,15 @@ export default function AddProjetoPage() {
       }
       let aux = JSON.parse(JSON.stringify(tarefas));
       if (indexId !== -1) {
-        aux[indexId] = {
-          nome,
-          desc,
-          dataInicio: formatarDataParaDDMMYYYY(dataInicio),
-          dataFim: formatarDataParaDDMMYYYY(dataFim),
-        };
+        aux[indexId].nome_tarefa = nome;
+        aux[indexId].desc = desc;
+        aux[indexId].dataInicio = formatarDataParaDDMMYYYY(dataInicio);
+        aux[indexId].dataFim = formatarDataParaDDMMYYYY(dataFim);
+
         setIndex(-1);
       } else {
         aux.push({
-          nome,
+          nome_tarefa: nome,
           desc,
           dataInicio: formatarDataParaDDMMYYYY(dataInicio),
           dataFim: formatarDataParaDDMMYYYY(dataFim),
@@ -95,7 +97,9 @@ export default function AddProjetoPage() {
     try {
       setLoading(true);
       const realm = await getRealm();
-      const idProjeto = new Date().getTime();
+      const idProjeto = route.params?.id_projeto
+        ? route.params?.id_projeto
+        : new Date().getTime();
       if (!nome) {
         Toast.show({
           text1: 'Campo vazio',
@@ -108,26 +112,51 @@ export default function AddProjetoPage() {
       }
 
       realm.write(() => {
-        realm.create('Projetos', {
-          id_projeto: idProjeto,
-          nome_projeto: nome,
-          inicio: formatarDataParaDDMMYYYY(date),
-          fim: formatarDataParaDDMMYYYY(date2),
-          finalizado: false,
-        });
+        realm.create(
+          'Projetos',
+          {
+            id_projeto: idProjeto,
+            nome_projeto: nome,
+            inicio: formatarDataParaDDMMYYYY(date),
+            fim: formatarDataParaDDMMYYYY(date2),
+            finalizado: false,
+          },
+          true,
+        );
 
         for (let i = 0; i < tarefas.length; i++) {
           const element = tarefas[i];
 
-          realm.create('Tarefas', {
-            id_tarefa: new Date().getTime() + i,
-            nome_tarefa: element.nome,
-            desc: element.desc,
-            dataInicio: element.dataInicio,
-            dataFim: element.dataFim,
-            projeto_id: idProjeto,
-            status: 0,
-          });
+          realm.create(
+            'Tarefas',
+            {
+              id_tarefa: element?.id_tarefa
+                ? element.id_tarefa
+                : new Date().getTime() + i,
+              nome_tarefa: element.nome_tarefa,
+              desc: element.desc,
+              dataInicio: element.dataInicio,
+              dataFim: element.dataFim,
+              projeto_id: idProjeto,
+              status: 0,
+            },
+            true,
+          );
+        }
+
+        for (let i = 0; i < deleted.length; i++) {
+          const element = deleted[i];
+
+          const deletandoTarefas = realm.objectForPrimaryKey(
+            'Tarefas',
+            element,
+          );
+          if (deletandoTarefas) {
+            realm.delete(deletandoTarefas);
+            console.log(`Carro com ID ${element} deletado com sucesso.`);
+          } else {
+            console.error(`Nenhum carro encontrado com ID ${element}.`);
+          }
         }
       });
       navigation.navigate('ProjetosPage');
@@ -146,9 +175,42 @@ export default function AddProjetoPage() {
       return null;
     }
 
+    if (tarefas[index]?.id_tarefa) {
+      let aux2 = JSON.parse(JSON.stringify(deleted));
+      aux2.push(tarefas[index]?.id_tarefa);
+      setDeleted(aux2);
+    }
+    aux.splice(index, 1);
+
     // Retorna o elemento removido, se necessário
     setTarefas(aux);
   }
+
+  useEffect(() => {
+    const getData = async () => {
+      const realm = await getRealm();
+      const projeto: any = realm
+        .objects('Projetos')
+        .filtered(`id_projeto = ${route.params.id_projeto}`);
+
+      const tarefasBanco: any = realm
+        .objects('Tarefas')
+        .filtered(`projeto_id = ${route.params.id_projeto} AND status = 0`);
+
+      setNome(projeto[0].nome_projeto);
+      setDate(converterParaFormatoDateAceito(projeto[0].inicio));
+      setDate2(converterParaFormatoDateAceito(projeto[0].fim));
+      setTarefas(tarefasBanco);
+    };
+    try {
+      if (isFocused && route.params?.id_projeto) {
+        getData();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [route.params?.id_projeto, isFocused]);
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.label}>Nome do Projeto</Text>
@@ -228,7 +290,7 @@ export default function AddProjetoPage() {
       {tarefas.map((v: any, i: number) => {
         return (
           <View style={styles.itemTarefa} key={i}>
-            <Text>{v.nome}</Text>
+            <Text>{v.nome_tarefa}</Text>
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <TouchableOpacity
                 onPress={() => {

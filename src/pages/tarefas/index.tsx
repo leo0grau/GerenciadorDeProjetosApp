@@ -53,7 +53,24 @@ export default function TarefasListPage({navigation, route}: any) {
           style={{fontFamily: 'Poppins-Bold', color: 'black', fontSize: 18}}>
           Lista de Tarefas
         </Text>
-        <View />
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            backgroundColor: 'green',
+            width: 30,
+            height: 30,
+            borderRadius: 5,
+            justifyContent: 'center',
+            alignItems: 'center',
+            right: 0,
+          }}
+          onPress={() => {
+            navigation.navigate('AddProjetoPage', {
+              id_projeto: route.params.id_projeto,
+            });
+          }}>
+          <IonIcons name="pencil" color={'white'} size={25} />
+        </TouchableOpacity>
       </View>
       <View style={styles.linha}>
         <TouchableOpacity

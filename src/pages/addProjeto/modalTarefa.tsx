@@ -52,7 +52,7 @@ export default function ModalTarefa({
 
   useEffect(() => {
     if (data) {
-      setNome(data.nome);
+      setNome(data.nome_tarefa);
       setDesc(data.desc);
 
       setDate(converterParaFormatoDateAceito(data.dataInicio));
