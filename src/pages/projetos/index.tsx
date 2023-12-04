@@ -4,7 +4,7 @@ import styles from './styles';
 import {useIsFocused} from '@react-navigation/native';
 import getRealm from '../../database/realm';
 import IonIcons from 'react-native-vector-icons/Ionicons';
-import ItemComponent from './item';
+import HomeProjetoListComponent from '../../components/homeProjeto';
 export default function ProjetosPage() {
   const [completo, setcompleto] = useState(false);
   const [listaProjetos, setListaProjetos] = useState<any[]>([]);
@@ -16,7 +16,34 @@ export default function ProjetosPage() {
       const projetos: any = realm
         .objects('Projetos')
         .filtered(`finalizado = ${completo}`);
-      setListaProjetos(projetos);
+
+      let aux = [];
+      for (let i = 0; i < projetos.length; i++) {
+        const element = projetos[i];
+        const todasTarefas = realm
+          .objects('Tarefas')
+          .filtered(`projeto_id = ${element.id_projeto}`);
+
+        const tarefaTrue = realm
+          .objects('Tarefas')
+          .filtered(`projeto_id = ${element.id_projeto} AND status = 2`);
+
+        const tarefaFalse = realm
+          .objects('Tarefas')
+          .filtered(`projeto_id = ${element.id_projeto} AND status != 2`);
+        let porcentagem = (tarefaTrue.length / todasTarefas.length) * 100;
+        if (todasTarefas.length === 0) {
+          porcentagem = 100;
+        }
+        let json = {
+          id_projeto: element.id_projeto,
+          nome: element.nome_projeto,
+          tarefasPendentes: tarefaFalse.length,
+          porcentagem: porcentagem,
+        };
+        aux.push(json);
+      }
+      setListaProjetos(aux);
     };
     try {
       getData();
@@ -59,7 +86,7 @@ export default function ProjetosPage() {
       </View>
       <View style={{marginTop: 30}}>
         {listaProjetos.map((v, i) => {
-          return <ItemComponent key={i} item={v} />;
+          return <HomeProjetoListComponent key={i} item={v} width={'90%'} />;
         })}
       </View>
       <Text></Text>

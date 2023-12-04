@@ -4,7 +4,13 @@ import LinearGradient from 'react-native-linear-gradient';
 import styles from './styles';
 import {Props} from '../../pages/home';
 import {useNavigation} from '@react-navigation/native';
-export default function HomeProjetoListComponent({item}: {item: Props}) {
+export default function HomeProjetoListComponent({
+  item,
+  width = 0,
+}: {
+  item: Props;
+  width: number | string;
+}) {
   const navigation: any = useNavigation();
   function calcularTamanho(porcentagem: number) {
     // Verifica se a porcentagem está no intervalo de 0 a 100
@@ -29,7 +35,7 @@ export default function HomeProjetoListComponent({item}: {item: Props}) {
         colors={['#0093E9', '#80D0C7']}
         angle={94}
         useAngle={true}
-        style={styles.linear}
+        style={[styles.linear, width ? {width: width} : false]}
         angleCenter={{x: 0.5, y: 0.5}}>
         <View style={styles.emcima}>
           <Text style={styles.titulo} numberOfLines={1}>
