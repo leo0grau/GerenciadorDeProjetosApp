@@ -124,6 +124,7 @@ export default function BottomNav() {
         name="AddProjetoPage"
         component={AddProjetoPage}
         options={{
+          unmountOnBlur: true,
           tabBarButton: props => <PlusButtom {...props} />,
 
           tabBarIcon: ({focused}) => (

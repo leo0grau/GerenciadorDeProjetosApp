@@ -203,8 +203,18 @@ export default function AddProjetoPage({route}: any) {
       setTarefas(tarefasBanco);
     };
     try {
-      if (isFocused && route.params?.id_projeto) {
-        getData();
+      console.log(isFocused, route.params?.id_projeto);
+      if (isFocused) {
+        if (route.params?.id_projeto) {
+          getData();
+        }
+      } else {
+        setNome('');
+        setDate(new Date());
+        setDate2(new Date());
+        setTarefas([]);
+        setLoading(false);
+        navigation.setParams({id_projeto: undefined});
       }
     } catch (error) {
       console.log(error);
