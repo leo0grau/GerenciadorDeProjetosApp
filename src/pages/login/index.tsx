@@ -6,14 +6,10 @@ import {
   TouchableWithoutFeedback,
   TextInput,
   Keyboard,
-  SafeAreaView,
-  Platform,
-  BackHandler,
   ActivityIndicator,
 } from 'react-native';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import LinearGradient from 'react-native-linear-gradient';
-import FastImage from 'react-native-fast-image';
+
 import {
   // onGoogleButtonPress,
   // onAppleButtonPress,
@@ -21,7 +17,6 @@ import {
   onGoogleButtonPress,
 } from './functions';
 import styles from './styles';
-import Feather from 'react-native-vector-icons/Feather';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import auth from '@react-native-firebase/auth';
 import Toast from 'react-native-toast-message';
@@ -70,7 +65,7 @@ export default function LoginPage({route}: Props) {
             age: 0,
             gender: 0,
           };
-          handleSendToDataBase(data);
+          await handleSendToDataBase(data);
           setUser(true);
         } else {
           a = false;
@@ -156,26 +151,26 @@ export default function LoginPage({route}: Props) {
                 .then(async v => {
                   setLoading(false);
 
-                  let json = {
-                    name: v.user.displayName,
-                    email: v.user.email,
-                    image_user: '',
-                    platform: 'Email/Senha',
-                  };
+                  // let json = {
+                  //   name: v.user.displayName,
+                  //   email: v.user.email,
+                  //   image_user: '',
+                  //   platform: 'Email/Senha',
+                  // };
 
-                  const realm = await getRealm();
-                  realm.write(() => {
-                    realm.create(
-                      'User',
-                      {
-                        id_user: 1,
-                        name: json?.name ? json?.name : 'Guest',
-                        email: json.email,
-                        image_user: json.image_user ? json.image_user : '',
-                      },
-                      true,
-                    );
-                  });
+                  // const realm = await getRealm();
+                  // realm.write(() => {
+                  //   realm.create(
+                  //     'User',
+                  //     {
+                  //       id_user: 1,
+                  //       name: json?.name ? json?.name : 'Guest',
+                  //       email: json.email,
+                  //       image_user: json.image_user ? json.image_user : '',
+                  //     },
+                  //     true,
+                  //   );
+                  // });
 
                   // await handleSendToDataBase(json, false);
                 })

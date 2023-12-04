@@ -8,10 +8,19 @@ import {converterParaFormatoDateAceito} from '../addProjeto/modalTarefa';
 export default function TarefasListPage({navigation, route}: any) {
   const [tarefas, setTarefas] = useState([]);
   const [completo, setcompleto] = useState(false);
+  const [editavel, setEditavel] = useState(false);
   const isFocused = useIsFocused();
   useEffect(() => {
     const getData = async () => {
       const realm = await getRealm();
+      const user = realm.objects('User');
+      const projeto = realm
+        .objects('Projetos')
+        .filtered(`id_projeto = ${route.params.id_projeto}`);
+
+      if (user[0].id_user === projeto[0].usuario_criador) {
+        setEditavel(true);
+      }
       const tarefasBanco: any = realm
         .objects('Tarefas')
         .filtered(
@@ -53,24 +62,28 @@ export default function TarefasListPage({navigation, route}: any) {
           style={{fontFamily: 'Poppins-Bold', color: 'black', fontSize: 18}}>
           Lista de Tarefas
         </Text>
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
-            backgroundColor: 'green',
-            width: 30,
-            height: 30,
-            borderRadius: 5,
-            justifyContent: 'center',
-            alignItems: 'center',
-            right: 0,
-          }}
-          onPress={() => {
-            navigation.navigate('AddProjetoPage', {
-              id_projeto: route.params.id_projeto,
-            });
-          }}>
-          <IonIcons name="pencil" color={'white'} size={25} />
-        </TouchableOpacity>
+        {editavel ? (
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              backgroundColor: 'green',
+              width: 30,
+              height: 30,
+              borderRadius: 5,
+              justifyContent: 'center',
+              alignItems: 'center',
+              right: 0,
+            }}
+            onPress={() => {
+              navigation.navigate('AddProjetoPage', {
+                id_projeto: route.params.id_projeto,
+              });
+            }}>
+            <IonIcons name="pencil" color={'white'} size={25} />
+          </TouchableOpacity>
+        ) : (
+          false
+        )}
       </View>
       <View style={styles.linha}>
         <TouchableOpacity
@@ -127,7 +140,7 @@ export default function TarefasListPage({navigation, route}: any) {
           );
         })}
       </View>
-      <Text></Text>
+      <Text />
     </ScrollView>
   );
 }

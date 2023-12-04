@@ -3,6 +3,9 @@ import {GoogleSignin} from '@react-native-google-signin/google-signin';
 // import {appleAuth} from '@invertase/react-native-apple-authentication';
 import getRealm from '../../database/realm';
 import Toast from 'react-native-toast-message';
+import messaging from '@react-native-firebase/messaging';
+
+import {api} from '../../services/api';
 // import {translate} from '../../locale';
 // import app, {headers} from '../../services/axios';
 // import getRealm from '../../services/realm';
@@ -15,42 +18,48 @@ type jsonAfterLogin = {
   age?: number;
 };
 
-export async function handleSendToDataBase(
-  json: jsonAfterLogin,
-  verificar: boolean = false,
-) {
-  const realm = await getRealm();
-  // const config: any = realm.objects('Config');
-  // const gemClass = new GemManager(realm);
-  // let uid = await getUniqueId();
+export async function handleSendToDataBase(json: jsonAfterLogin) {
+  try {
+    const realm = await getRealm();
+    const fcmToken = await messaging().getToken();
 
-  // let {data} = await app.post(
-  //   `user/saveIfNotExists`,
-  //   {
-  //     name: json.name,
-  //     email: json.email,
-  //     image_user: json.image_user,
-  //     platform: json.platform,
-  //     age: json?.age ? json.age : 0,
-  //     uid: uid,
-  //     gender: json?.gender ? json.gender : 0,
-  //     language: config[0].lingua,
-  //   },
-  //   {headers},
-  // );
+    let {data} = await api.post('user/saveIfNotExists', {
+      name: json.name,
+      email: json.email,
+      fcmToken: fcmToken,
+    });
 
-  realm.write(() => {
-    realm.create(
-      'User',
-      {
-        id_user: 1,
-        name: json?.name ? json?.name : 'Guest',
-        email: json.email,
-        image_user: json.image_user ? json.image_user : '',
-      },
-      true,
-    );
-  });
+    if (Array.isArray(data) && data.length) {
+      data = data[0];
+      realm.write(() => {
+        realm.create(
+          'User',
+          {
+            id_user: data.id_user,
+            name: data?.name ? data?.name : 'Guest',
+            email: data.email,
+            image_user: json.image_user ? json.image_user : '',
+          },
+          true,
+        );
+      });
+    } else {
+      realm.write(() => {
+        realm.create(
+          'User',
+          {
+            id_user: data.insertedId,
+            name: json?.name ? json?.name : 'Guest',
+            email: json.email,
+            image_user: json.image_user ? json.image_user : '',
+          },
+          true,
+        );
+      });
+    }
+  } catch (error) {
+    console.log(error);
+  }
 }
 // 40470
 //409455216

@@ -9,7 +9,7 @@ export default function HomeProjetoListComponent({
   width = 0,
 }: {
   item: Props;
-  width: number | string;
+  width?: number | string;
 }) {
   const navigation: any = useNavigation();
   function calcularTamanho(porcentagem: number) {
@@ -53,7 +53,8 @@ export default function HomeProjetoListComponent({
               style={[
                 styles.barFrente,
                 {width: calcularTamanho(item.porcentagem)},
-              ]}></LinearGradient>
+              ]}
+            />
           </View>
         </View>
       </LinearGradient>

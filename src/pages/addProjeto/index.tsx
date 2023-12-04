@@ -14,6 +14,8 @@ import getRealm from '../../database/realm';
 import Toast from 'react-native-toast-message';
 import IonIcons from 'react-native-vector-icons/Ionicons';
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import {api, getConnection} from '../../services/api';
+import ModalEquipeComponent from './modalEquipe';
 
 export function formatarDataParaDDMMYYYY(data: Date) {
   // Garanta que 'data' seja um objeto Date
@@ -35,7 +37,6 @@ export function formatarDataParaDDMMYYYY(data: Date) {
 
 export default function AddProjetoPage() {
   const [nome, setNome] = useState('');
-  const route: any = useRoute();
   const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false);
 
@@ -48,8 +49,11 @@ export default function AddProjetoPage() {
 
   const [loading, setLoading] = useState(false);
   const [deleted, setDeleted] = useState([]);
+  const [openConvidados, setOpenConvidados] = useState(false);
+  const [emailsConvidados, setEmailsConvidados] = useState([]);
   const isFocused = useIsFocused();
   const navigation = useNavigation();
+  const route: any = useRoute();
 
   const handleSubmit = async (
     nome: string,
@@ -95,8 +99,10 @@ export default function AddProjetoPage() {
 
   const handleSaveProjeto = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
+
       const realm = await getRealm();
+      const user: any = realm.objects('User');
       const idProjeto = route.params?.id_projeto
         ? route.params?.id_projeto
         : new Date().getTime();
@@ -110,55 +116,115 @@ export default function AddProjetoPage() {
 
         return;
       }
-
-      realm.write(() => {
-        realm.create(
-          'Projetos',
-          {
-            id_projeto: idProjeto,
-            nome_projeto: nome,
-            inicio: formatarDataParaDDMMYYYY(date),
-            fim: formatarDataParaDDMMYYYY(date2),
-            finalizado: false,
-          },
-          true,
-        );
-
-        for (let i = 0; i < tarefas.length; i++) {
-          const element = tarefas[i];
-
+      if (await getConnection()) {
+        const result = await api.post('projetos/postProjeto', {
+          nome_projeto: nome,
+          inicio: date,
+          fim: date2,
+          finalizado: false,
+          tarefas: tarefas,
+          user: user[0].id_user,
+          emailsConvidados: emailsConvidados,
+        });
+        realm.write(async () => {
           realm.create(
-            'Tarefas',
+            'Projetos',
             {
-              id_tarefa: element?.id_tarefa
-                ? element.id_tarefa
-                : new Date().getTime() + i,
-              nome_tarefa: element.nome_tarefa,
-              desc: element.desc,
-              dataInicio: element.dataInicio,
-              dataFim: element.dataFim,
-              projeto_id: idProjeto,
-              status: 0,
+              id_projeto: result.data.insertId,
+              nome_projeto: nome,
+              inicio: formatarDataParaDDMMYYYY(date),
+              fim: formatarDataParaDDMMYYYY(date2),
+              finalizado: false,
+              usuario_criador: user[0].id_user,
             },
             true,
           );
-        }
 
-        for (let i = 0; i < deleted.length; i++) {
-          const element = deleted[i];
+          for (let i = 0; i < tarefas.length; i++) {
+            const element = tarefas[i];
 
-          const deletandoTarefas = realm.objectForPrimaryKey(
-            'Tarefas',
-            element,
-          );
-          if (deletandoTarefas) {
-            realm.delete(deletandoTarefas);
-            console.log(`Carro com ID ${element} deletado com sucesso.`);
-          } else {
-            console.error(`Nenhum carro encontrado com ID ${element}.`);
+            realm.create(
+              'Tarefas',
+              {
+                id_tarefa: result.data.tarefas[i],
+                nome_tarefa: element.nome_tarefa,
+                desc: element.desc,
+                dataInicio: element.dataInicio,
+                dataFim: element.dataFim,
+                projeto_id: result.data.insertId,
+                status: 0,
+              },
+              true,
+            );
           }
-        }
-      });
+
+          for (let i = 0; i < deleted.length; i++) {
+            const element = deleted[i];
+
+            const deletandoTarefas = realm.objectForPrimaryKey(
+              'Tarefas',
+              element,
+            );
+            if (deletandoTarefas) {
+              realm.delete(deletandoTarefas);
+              await api.post('projetos/delete', {id_tarefa: deletandoTarefas});
+            } else {
+              console.error(` ${element}.`);
+            }
+          }
+        });
+      } else {
+        realm.write(() => {
+          realm.create(
+            'Projetos',
+            {
+              id_projeto: idProjeto,
+              nome_projeto: nome,
+              inicio: formatarDataParaDDMMYYYY(date),
+              fim: formatarDataParaDDMMYYYY(date2),
+              finalizado: false,
+              usuario_criador: user[0].id_user,
+            },
+            true,
+          );
+
+          for (let i = 0; i < tarefas.length; i++) {
+            const element = tarefas[i];
+
+            realm.create(
+              'Tarefas',
+              {
+                id_tarefa: element?.id_tarefa
+                  ? element.id_tarefa
+                  : new Date().getTime() + i,
+                nome_tarefa: element.nome_tarefa,
+                desc: element.desc,
+                dataInicio: element.dataInicio,
+                dataFim: element.dataFim,
+                projeto_id: idProjeto,
+                status: 0,
+              },
+              true,
+            );
+          }
+
+          for (let i = 0; i < deleted.length; i++) {
+            const element = deleted[i];
+
+            const deletandoTarefas = realm.objectForPrimaryKey(
+              'Tarefas',
+              element,
+            );
+            if (deletandoTarefas) {
+              realm.delete(deletandoTarefas);
+              console.log(`Carro com ID ${element} deletado com sucesso.`);
+            } else {
+              console.error(`Nenhum carro encontrado com ID ${element}.`);
+            }
+          }
+        });
+      }
+
       navigation.reset({
         index: 0,
         routes: [{name: 'ProjetosPage', params: undefined}],
@@ -166,6 +232,21 @@ export default function AddProjetoPage() {
     } catch (error) {
       setLoading(false);
 
+      console.log(error);
+    }
+  };
+
+  const handleConvidados = async (email: string) => {
+    try {
+      if (email) {
+        let aux = JSON.parse(JSON.stringify(emailsConvidados));
+
+        aux.push(email);
+
+        setEmailsConvidados(aux);
+        setOpenConvidados(false);
+      }
+    } catch (error) {
       console.log(error);
     }
   };
@@ -187,6 +268,19 @@ export default function AddProjetoPage() {
 
     // Retorna o elemento removido, se necessário
     setTarefas(aux);
+  }
+  function handleRemove2(index: number) {
+    let aux = JSON.parse(JSON.stringify(emailsConvidados));
+
+    // Verifica se o índice é válido
+    if (index < 0 || index >= aux.length) {
+      return null;
+    }
+
+    aux.splice(index, 1);
+
+    // Retorna o elemento removido, se necessário
+    setEmailsConvidados(aux);
   }
 
   useEffect(() => {
@@ -321,6 +415,40 @@ export default function AddProjetoPage() {
           </View>
         );
       })}
+
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: 30,
+          marginHorizontal: 20,
+        }}>
+        <Text style={[styles.label, {marginTop: 0, marginLeft: 0}]}>
+          Convidados
+        </Text>
+        <TouchableOpacity
+          style={styles.addBadge}
+          onPress={() => {
+            setOpenConvidados(true);
+          }}>
+          <Text style={styles.label2}>Convidar usuário</Text>
+        </TouchableOpacity>
+      </View>
+      {emailsConvidados.map((v: any, i: number) => {
+        return (
+          <View style={styles.itemTarefa} key={i}>
+            <Text>{v}</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <TouchableOpacity
+                style={styles.badge}
+                onPress={() => handleRemove2(i)}>
+                <IonIcons name="trash-outline" size={20} color={'white'} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      })}
       <TouchableOpacity style={styles.btnSalvar} onPress={handleSaveProjeto}>
         {loading ? (
           <ActivityIndicator size={'large'} color={'white'} />
@@ -334,6 +462,11 @@ export default function AddProjetoPage() {
         setIsVisible={setTarefaModal}
         handleSubmit={handleSubmit}
         data={tarefas[indexId]}
+      />
+      <ModalEquipeComponent
+        isVisible={openConvidados}
+        setIsVisible={setOpenConvidados}
+        handleConvidados={handleConvidados}
       />
     </ScrollView>
   );

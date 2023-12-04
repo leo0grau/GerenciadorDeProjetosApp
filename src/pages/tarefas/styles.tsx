@@ -3,7 +3,7 @@ import {StyleSheet, StatusBar} from 'react-native';
 const styles = StyleSheet.create({
   linha: {
     flexDirection: 'row',
-    marginHorizontal: 64,
+    marginHorizontal: '5%',
     justifyContent: 'space-between',
     marginTop: 30,
   },

@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react';
 import styles from './styles';
 import {useIsFocused} from '@react-navigation/native';
 import getRealm from '../../database/realm';
+import {api, getConnection} from '../../services/api';
 export default function ItemTarefasPage({navigation, route}: any) {
   const isFocused = useIsFocused();
   const [desc, setDesc] = useState('');
@@ -15,6 +16,7 @@ export default function ItemTarefasPage({navigation, route}: any) {
         .objects('Tarefas')
         .filtered(`id_tarefa = ${route.params.id_tarefa}`);
       console.log(tarefas);
+
       setShowBtn(tarefas[0].status !== 2 ? true : false);
       setNome(tarefas[0].nome_tarefa);
       setDesc(tarefas[0].desc);
@@ -37,6 +39,14 @@ export default function ItemTarefasPage({navigation, route}: any) {
       const item: any = realm
         .objects('Projetos')
         .filtered(`id_projeto = ${tarefas[0].projeto_id}`);
+
+      const user = realm.objects('User');
+      if (await getConnection()) {
+        await api.post('projetos/updateTarefa', {
+          id_tarefa: route.params.id_tarefa,
+          user_id: user[0].id_user,
+        });
+      }
 
       realm.write(() => {
         tarefas[0].status = 2;
@@ -89,7 +99,7 @@ export default function ItemTarefasPage({navigation, route}: any) {
           <Text style={styles.salvarTxt}>Finalizar tarefa</Text>
         </TouchableOpacity>
       )}
-      <Text></Text>
+      <Text />
     </ScrollView>
   );
 }

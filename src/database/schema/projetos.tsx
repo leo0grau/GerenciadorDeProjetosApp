@@ -7,5 +7,6 @@ export default {
     inicio: 'string',
     fim: 'string',
     finalizado: 'bool',
+    usuario_criador: 'int',
   },
 };
