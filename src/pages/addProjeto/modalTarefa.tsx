@@ -17,7 +17,7 @@ interface Props {
   data: any;
 }
 
-function converterParaFormatoDateAceito(dataString: string) {
+export function converterParaFormatoDateAceito(dataString: string) {
   // Divide a string nos caracteres "/"
   const partes = dataString.split('/');
 

@@ -3,8 +3,9 @@ import React, {useEffect, useState} from 'react';
 import styles from './styles';
 import HomeProjetoListComponent from '../../components/homeProjeto';
 import TarefasHomeComponent from '../../components/tarefaProjeto';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import getRealm from '../../database/realm';
+import {converterParaFormatoDateAceito} from '../addProjeto/modalTarefa';
 export type Props = {
   id_tarefa: number;
   nome: string;
@@ -17,7 +18,7 @@ export default function HomePage() {
   const navigation: any = useNavigation();
   const [data, setData] = useState<any[]>([]);
   const [tarefa, setTarefa] = useState<any[]>([]);
-
+  const isFocused = useIsFocused();
   const renderItem = ({item}) => {
     return <HomeProjetoListComponent item={item} />;
   };
@@ -25,63 +26,78 @@ export default function HomePage() {
   useEffect(() => {
     const getData = async () => {
       const realm = await getRealm();
+      const projeto = realm.objects('Projetos').filtered(`finalizado = false`);
+      const tarefasDeHoje = realm.objects('Tarefas').filtered(`status != 2`);
 
-      setData([
-        {
-          id_tarefa: 1,
-          nome: 'nome',
-          tarefasPendentes: 12,
-          porcentagem: 12,
-          fotos: [],
-        },
-        {
-          id_tarefa: 2,
-          nome: 'nome',
-          tarefasPendentes: 12,
-          porcentagem: 12,
-          fotos: [],
-        },
-        {
-          id_tarefa: 3,
-          nome: 'nome',
-          tarefasPendentes: 12,
-          porcentagem: 12,
-          fotos: [],
-        },
-      ]);
-      setTarefa([
-        {
-          id_tarefa: 1,
-          nome: 'Tarefa 1',
-          prazo: '16/04/2001',
-          nomeProjeto: 'Projeto 1',
-          status: 'Dentro da data',
-          color: '#4b7be5',
-        },
-        {
-          id_tarefa: 2,
-          nome: 'Tarefa 2',
-          prazo: '16/04/2001',
-          nomeProjeto: 'Projeto 1',
-          status: 'Atrasado',
-          color: '#e54b7b',
-        },
-        {
-          id_tarefa: 3,
-          nome: 'Tarefa 3',
-          prazo: '16/04/2001',
-          nomeProjeto: 'Projeto 1',
-          status: 'Hoje',
-          color: '#7be54b',
-        },
-      ]);
+      let aux = [];
+      let auxDiario = [];
+      for (let i = 0; i < projeto.length; i++) {
+        const element = projeto[i];
+        const todasTarefas = realm
+          .objects('Tarefas')
+          .filtered(`projeto_id = ${element.id_projeto}`);
+
+        const tarefaTrue = realm
+          .objects('Tarefas')
+          .filtered(`projeto_id = ${element.id_projeto} AND status = 2`);
+
+        const tarefaFalse = realm
+          .objects('Tarefas')
+          .filtered(`projeto_id = ${element.id_projeto} AND status != 2`);
+        let porcentagem = (tarefaTrue.length / todasTarefas.length) * 100;
+        if (todasTarefas.length === 0) {
+          porcentagem = 100;
+        }
+        let json = {
+          id_projeto: element.id_projeto,
+          nome: element.nome_projeto,
+          tarefasPendentes: tarefaFalse.length,
+          porcentagem: porcentagem,
+        };
+        aux.push(json);
+      }
+
+      for (let i = 0; i < tarefasDeHoje.length; i++) {
+        const element: any = tarefasDeHoje[i];
+        const projetoNome = realm
+          .objects('Projetos')
+          .filtered(`id_projeto = ${element.projeto_id}`);
+        let status = '';
+        let color = '';
+        if (new Date() < converterParaFormatoDateAceito(element.dataFim)) {
+          status = 'Dentro do prazo';
+          color = '#4b7be5';
+        } else {
+          status = 'Atrasado ';
+          color = '#e54b7b';
+        }
+
+        let json = {
+          id_tarefa: element.id_tarefa,
+          nome: element.nome_tarefa,
+          prazo: element.dataFim,
+          nomeProjeto: projetoNome[0].nome_projeto,
+          status: status,
+          color: color,
+        };
+
+        if (new Date() > converterParaFormatoDateAceito(element.dataInicio)) {
+          auxDiario.push(json);
+        }
+        console.log(json);
+        console.log(element);
+      }
+      setData(aux);
+      setTarefa(auxDiario);
     };
     try {
-      getData();
+      if (isFocused) {
+        getData();
+      }
     } catch (error) {
       console.log(error);
     }
-  }, []);
+  }, [isFocused]);
 
   return (
     <View style={styles.container}>
@@ -105,7 +121,7 @@ export default function HomePage() {
         <FlatList
           renderItem={renderItem}
           data={data}
-          keyExtractor={v => '' + v.id_tarefa}
+          keyExtractor={v => '' + v.id_projeto}
           horizontal
           showsHorizontalScrollIndicator={false}
         />

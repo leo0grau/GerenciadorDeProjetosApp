@@ -121,8 +121,8 @@ export default function AddProjetoPage() {
           const element = tarefas[i];
 
           realm.create('Tarefas', {
-            id_tarefa: new Date().getTime(),
-            nome_tarefa: nome,
+            id_tarefa: new Date().getTime() + i,
+            nome_tarefa: element.nome,
             desc: element.desc,
             dataInicio: element.dataInicio,
             dataFim: element.dataFim,
