@@ -9,6 +9,8 @@ import PerfilPage from '../pages/perfil';
 import ProjetosPage from '../pages/projetos';
 import {TouchableOpacity, View} from 'react-native';
 import AddProjetoPage from '../pages/addProjeto';
+import ItemTarefasPage from '../pages/tarefas/item';
+import TarefasListPage from '../pages/tarefas';
 const Tab = createBottomTabNavigator();
 type IconeProps = {
   route: any;
@@ -69,6 +71,13 @@ export default function BottomNav() {
         //     <Icone focused={focused} color={color} size={size} route={route} />
         //   );
         // },
+        tabBarButton: ['ItemTarefasPage', 'TarefasListPage'].includes(
+          route.name,
+        )
+          ? () => {
+              return null;
+            }
+          : undefined,
         tabBarStyle: {
           position: 'absolute',
           bottom: 0,
@@ -154,6 +163,18 @@ export default function BottomNav() {
               />
             </View>
           ),
+        }}
+      />
+      <Tab.Screen
+        name="ItemTarefasPage"
+        component={ItemTarefasPage}
+        options={{}}
+      />
+      <Tab.Screen
+        name="TarefasListPage"
+        component={TarefasListPage}
+        options={{
+          tabBarIconStyle: {display: 'none', position: 'absolute'},
         }}
       />
 

@@ -67,7 +67,6 @@ export default function AddProjetoPage() {
         return;
       }
       let aux = JSON.parse(JSON.stringify(tarefas));
-      console.log(aux, indexId);
       if (indexId !== -1) {
         aux[indexId] = {
           nome,

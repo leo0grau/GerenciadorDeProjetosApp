@@ -7,7 +7,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import getRealm from '../../database/realm';
 import {converterParaFormatoDateAceito} from '../addProjeto/modalTarefa';
 export type Props = {
-  id_tarefa: number;
+  id_projeto: number;
   nome: string;
   tarefasPendentes: number;
   porcentagem: number;
@@ -84,8 +84,6 @@ export default function HomePage() {
         if (new Date() > converterParaFormatoDateAceito(element.dataInicio)) {
           auxDiario.push(json);
         }
-        console.log(json);
-        console.log(element);
       }
       setData(aux);
       setTarefa(auxDiario);

@@ -1,9 +1,11 @@
-import {View, Text} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import React from 'react';
+import {useNavigation} from '@react-navigation/native';
 
 export default function ItemComponent({item}: any) {
+  const navigation: any = useNavigation();
   return (
-    <View
+    <TouchableOpacity
       style={{
         marginHorizontal: 53,
         backgroundColor: 'white',
@@ -11,11 +13,18 @@ export default function ItemComponent({item}: any) {
         borderRadius: 16,
         padding: 24,
         marginBottom: 13,
+      }}
+      onPress={() => {
+        console.log(item);
+        navigation.navigate('TarefasListPage', {
+          id_projeto: item.id_projeto,
+          nome: item.nome_projeto,
+        });
       }}>
       <Text
         style={{color: '#1C1243', fontSize: 18, fontFamily: 'Poppins-Light'}}>
         {item.nome_projeto}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 }
